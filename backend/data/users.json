@@ -1,0 +1,10 @@
+[
+  {
+    "id": "fb5d0074-72ba-4362-9bae-e1780408eab3",
+    "name": "adam",
+    "email": "adam@gmail.com",
+    "password": "$2b$10$r8w.4sBDgps9fHgMHm6my.YYfT6D1k/3jiMlGtOuFbRQk0E8yDvpu",
+    "role": "USER",
+    "createdAt": "2026-07-20T19:16:46.145Z"
+  }
+]
