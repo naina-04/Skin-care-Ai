@@ -17,8 +17,7 @@
     "declaration": true,
     "declarationMap": true,
 
-    // Stricter Typechecking Options
-    "noUncheckedIndexedAccess": true,
+    "strictNullChecks": true,
     "exactOptionalPropertyTypes": true,
 
     "isolatedModules": true,

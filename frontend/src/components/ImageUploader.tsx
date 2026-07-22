@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 
-export default function ImageUploader({ onAnalysisComplete }: { onAnalysisComplete: (data: any) => void }) {
+export default function ImageUploader({ onAnalysisComplete }: { onAnalysisComplete: (data: any, preview: string | null) => void }) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -49,7 +49,7 @@ export default function ImageUploader({ onAnalysisComplete }: { onAnalysisComple
       }
 
       const data = await response.json();
-      onAnalysisComplete(data);
+      onAnalysisComplete(data, preview);
       setLoading(false);
     } catch (err: any) {
       setError(err.message || 'Failed to analyze image. Please try again.');

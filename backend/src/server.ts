@@ -1,12 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import session from 'express-session';
-import sessionFileStore from 'session-file-store';
+dotenv.config();
+
+import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth';
 import { initializeDatabase } from './models/userModel';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -14,36 +13,20 @@ const PORT = process.env.PORT || 5000;
 // Initialize JSON database
 initializeDatabase();
 
-// Enable credentials for CORS
+// Enable credentials for CORS dynamically across local origins (localhost / 127.0.0.1 on any port)
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true);
+    }
+  },
   credentials: true,
 }));
 
 app.use(express.json());
-
-// Session Configuration
-const FileStore = sessionFileStore(session);
-const SESSION_SECRET = process.env.SESSION_SECRET || 'super-secret-fallback-key';
-
-const sessionConfig = {
-  name: 'connect.sid',
-  secret: SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  store: new FileStore({
-    path: './sessions',
-    ttl: 3600 * 2 // 2 hours
-  }),
-  cookie: {
-    maxAge: 1000 * 60 * 60 * 2, // 2 hours
-    httpOnly: true,
-    secure: false, // set to true in production if using HTTPS
-    sameSite: 'lax' as const,
-  }
-};
-
-app.use(session(sessionConfig));
+app.use(cookieParser());
 
 import analyzeRoutes from './routes/analyze';
 

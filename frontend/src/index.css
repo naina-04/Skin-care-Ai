@@ -57,3 +57,30 @@
     @apply bg-background text-foreground;
   }
 }
+
+@media print {
+  html, body {
+    background-color: white !important;
+  }
+  :root, .dark {
+    --background: 210 40% 98% !important;
+    --foreground: 222.2 84% 4.9% !important;
+    --card: 0 0% 100% !important;
+    --card-foreground: 222.2 84% 4.9% !important;
+    --popover: 0 0% 100% !important;
+    --popover-foreground: 222.2 84% 4.9% !important;
+    --primary: 142.1 76.2% 28.3% !important;
+    --primary-foreground: 355.7 100% 97.3% !important;
+    --secondary: 210 40% 96.1% !important;
+    --secondary-foreground: 222.2 47.4% 11.2% !important;
+    --muted: 210 40% 96.1% !important;
+    --muted-foreground: 215.4 16.3% 46.9% !important;
+    --accent: 210 40% 96.1% !important;
+    --accent-foreground: 222.2 47.4% 11.2% !important;
+    --destructive: 0 84.2% 60.2% !important;
+    --destructive-foreground: 210 40% 98% !important;
+    --border: 214.3 31.8% 91.4% !important;
+    --input: 214.3 31.8% 91.4% !important;
+    --ring: 222.2 84% 4.9% !important;
+  }
+}

@@ -2,8 +2,27 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { UserModel } from '../models/userModel';
+import jwt from 'jsonwebtoken';
 
 const router = Router();
+
+const generateTokenAndSetCookie = (res: any, user: any) => {
+  const secret = process.env.JWT_SECRET || 'super_secure_jwt_secret_key_2026';
+  const token = jwt.sign(
+    { id: user.id, email: user.email, name: user.name, role: user.role },
+    secret,
+    { expiresIn: '1d' }
+  );
+
+  res.cookie('token', token, {
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+  });
+
+  return { id: user.id, email: user.email, name: user.name, role: user.role };
+};
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -18,11 +37,18 @@ const loginSchema = z.object({
 
 // GET /api/auth/me - Check current session
 router.get('/me', (req, res) => {
-  const session = req.session as any;
-  if (session && session.user) {
-    return res.json({ loggedIn: true, user: session.user });
+  const token = req.cookies.token;
+  if (!token) {
+    return res.status(401).json({ loggedIn: false, error: 'Not authenticated' });
   }
-  return res.status(401).json({ loggedIn: false, error: 'Not authenticated' });
+
+  try {
+    const secret = process.env.JWT_SECRET || 'super_secure_jwt_secret_key_2026';
+    const user = jwt.verify(token, secret);
+    return res.json({ loggedIn: true, user });
+  } catch (error) {
+    return res.status(401).json({ loggedIn: false, error: 'Invalid or expired token' });
+  }
 });
 
 // POST /api/auth/register
@@ -42,15 +68,8 @@ router.post('/register', async (req, res) => {
       name
     });
 
-    const session = req.session as any;
-    session.user = {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role
-    };
-
-    res.status(201).json({ message: 'Registered successfully', user: session.user });
+    const sessionUser = generateTokenAndSetCookie(res, user);
+    res.status(201).json({ message: 'Registered successfully', user: sessionUser });
   } catch (error) {
     res.status(400).json({ error: 'Invalid data', details: error });
   }
@@ -71,15 +90,8 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const session = req.session as any;
-    session.user = {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role
-    };
-
-    res.json({ message: 'Logged in successfully', user: session.user });
+    const sessionUser = generateTokenAndSetCookie(res, user);
+    res.json({ message: 'Logged in successfully', user: sessionUser });
   } catch (error) {
     res.status(400).json({ error: 'Invalid data' });
   }
@@ -98,15 +110,8 @@ router.post('/guest', async (req, res) => {
       role: 'GUEST'
     });
 
-    const session = req.session as any;
-    session.user = {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role
-    };
-
-    res.json({ message: 'Guest session created', user: session.user });
+    const sessionUser = generateTokenAndSetCookie(res, user);
+    res.json({ message: 'Guest session created', user: sessionUser });
   } catch (error) {
     res.status(500).json({ error: 'Failed to create guest session' });
   }
@@ -114,17 +119,8 @@ router.post('/guest', async (req, res) => {
 
 // POST /api/auth/logout
 router.post('/logout', (req, res) => {
-  if (!req.session) {
-    return res.json({ message: 'No active session' });
-  }
-
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).json({ error: 'Could not log out' });
-    }
-    res.clearCookie('connect.sid');
-    return res.json({ message: 'Logged out successfully' });
-  });
+  res.clearCookie('token');
+  return res.json({ message: 'Logged out successfully' });
 });
 
 export default router;
